@@ -125,6 +125,138 @@ export interface PlayerRelationships {
   manager: number;
 }
 
+// Staff Management Types
+export interface Staff {
+  id: string;
+  name: string;
+  age: number;
+  nationality: string;
+  role: StaffRole;
+  attributes: StaffAttributes;
+  contract: StaffContract;
+  reputation: number;
+  personality: StaffPersonality;
+  specialization?: string[];
+  relationships: StaffRelationships;
+  className: string;
+}
+
+export enum StaffRole {
+  Manager = "Manager",
+  AssistantManager = "Assistant Manager",
+  Coach = "Coach",
+  Scout = "Scout",
+  PhysioTherapist = "Physiotherapist",
+  DataAnalyst = "Data Analyst",
+  YouthCoach = "Youth Coach"
+}
+
+export interface StaffAttributes {
+  coaching: number;
+  tacticalKnowledge: number;
+  manManagement: number;
+  discipline: number;
+  motivation: number;
+  fitness: number;
+  medical: number;
+  scouting: number;
+  youthDevelopment: number;
+  dataAnalysis: number;
+}
+
+export interface StaffContract {
+  clubId: string | null;
+  wage: number;
+  expiryDate: string;
+}
+
+export interface StaffPersonality {
+  ambition: number;
+  professionalism: number;
+  loyalty: number;
+  determination: number;
+}
+
+export interface StaffRelationships {
+  players: Map<string, number>;
+  fellowStaff: Map<string, number>;
+}
+
+// Infrastructure Types
+export interface Infrastructure {
+  stadium: Stadium;
+  trainingFacilities: TrainingFacilities;
+  youthAcademy: YouthAcademy;
+  dataAnalysisFacilities: DataAnalysisFacilities;
+  medicalCenter: MedicalCenter;
+}
+
+export interface Stadium {
+  id: string;
+  name: string;
+  capacity: number;
+  facilities: StadiumFacilities;
+  condition: number;
+  expansionPossible: boolean;
+  matchdayIncome: MatchdayIncome;
+}
+
+export interface StadiumFacilities {
+  seatingQuality: number;
+  hospitality: number;
+  parking: number;
+  foodAndBeverage: number;
+  accessibility: number;
+}
+
+export interface MatchdayIncome {
+  ticketRevenue: number;
+  hospitalityRevenue: number;
+  foodAndBeverageRevenue: number;
+  merchandiseRevenue: number;
+}
+
+export interface TrainingFacilities {
+  id: string;
+  level: number;
+  condition: number;
+  specializations: TrainingSpecialization[];
+  maintenanceCost: number;
+}
+
+export interface TrainingSpecialization {
+  type: string;
+  level: number;
+  effect: number;
+}
+
+export interface YouthAcademy {
+  id: string;
+  level: number;
+  reputation: number;
+  facilities: number;
+  coaching: number;
+  recruitment: number;
+  maintenanceCost: number;
+}
+
+export interface DataAnalysisFacilities {
+  id: string;
+  level: number;
+  equipment: number;
+  staff: number;
+  maintenanceCost: number;
+}
+
+export interface MedicalCenter {
+  id: string;
+  level: number;
+  equipment: number;
+  staff: number;
+  rehabilitationQuality: number;
+  maintenanceCost: number;
+}
+
 export interface Team {
   id: string;
   name: string;
@@ -134,13 +266,12 @@ export interface Team {
   leagueName?: string;
   logo: string;
   playerIds: string[];
+  staffIds: string[];
   squad: TeamSquad;
   formation: string;
   tactics: TeamTactics;
   finances: TeamFinances;
-  stadium: TeamStadium;
-  trainingFacilitiesLevel: number;
-  youthFacilitiesLevel: number;
+  infrastructure: Infrastructure;
   boardExpectations: BoardExpectations;
   manager: TeamManager;
   history: any[];
@@ -167,6 +298,11 @@ export interface TeamFinances {
   sponsorships: Sponsorship[];
   incomeLastMonth: number;
   expensesLastMonth: number;
+  infrastructureMaintenance: number;
+  debtPayments: number;
+  merchandiseIncome: number;
+  tvRights: number;
+  prizeMoney: number;
 }
 
 export interface Sponsorship {
@@ -177,31 +313,18 @@ export interface Sponsorship {
   endDate: string;
 }
 
-export interface TeamStadium {
-  name: string;
-  capacity: number;
-}
-
 export interface BoardExpectations {
   leaguePosition: number;
   cupPerformance: string;
   financialStability: string;
+  youthDevelopment: string;
+  playingStyle: string;
 }
 
 export interface TeamManager {
   name: string;
   isHuman: boolean;
   reputation?: number;
-}
-
-export interface YouthCandidate {
-  id: string;
-  age: number;
-  position: string;
-  potentialStars: number;
-  potentialActual: number;
-  nationality: string;
-  nameStub: string;
 }
 
 export interface League {
@@ -229,7 +352,6 @@ export interface LeagueTableEntry {
   goalsAgainst: number;
   goalDifference: number;
   points: number;
-  position?: number;
 }
 
 export interface Match {
@@ -270,7 +392,6 @@ export interface MatchStats {
 }
 
 export interface MatchCommentary {
-  id?: string;
   minute: number;
   text: string;
   type?: string;
@@ -309,10 +430,11 @@ export interface GameState {
   playerTeamId: string | null;
   teams: Team[];
   players: Player[];
+  staff: Staff[];
   leagues: League[];
   news: NewsItem[];
   gameSettings: GameSettings;
-  transferOfferQueue: any[];
+  transferOfferQueue: TransferOffer[];
   jobOffers: any[];
   seasonYear: number;
   processedEndOfSeason: boolean;
