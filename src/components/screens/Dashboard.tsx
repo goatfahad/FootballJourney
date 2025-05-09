@@ -13,7 +13,8 @@ export const Dashboard: React.FC = () => {
   const { state } = useGame();
   const [nextMatch, setNextMatch] = useState<Match | null>(null);
   const [latestNews, setLatestNews] = useState<NewsItem[]>([]);
-  const playerTeam = state.teams.find(t => t.id === state.playerTeamId);
+  // Ensure state.teams is an array before finding playerTeam
+  const playerTeam = Array.isArray(state.teams) ? state.teams.find(t => t.id === state.playerTeamId) : null;
 
   useEffect(() => {
     // Find the next match
