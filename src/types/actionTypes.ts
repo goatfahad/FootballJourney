@@ -1,4 +1,4 @@
-import { GameState, GameSettings, Player, Team, Match, NewsItem } from './gameTypes';
+import { GameState, GameSettings, Player, Team, Match, NewsItem, LiveMatchState } from './gameTypes'; // Added LiveMatchState
 
 export enum ActionTypes {
   INITIALIZE_NEW_GAME = 'INITIALIZE_NEW_GAME',
@@ -10,9 +10,16 @@ export enum ActionTypes {
   MARK_NEWS_READ = 'MARK_NEWS_READ',
   UPDATE_GAME_SETTINGS = 'UPDATE_GAME_SETTINGS',
   RESET_AUTOSAVE_COUNTER = 'RESET_AUTOSAVE_COUNTER',
-  UPDATE_MATCH = 'UPDATE_MATCH'
+  UPDATE_MATCH = 'UPDATE_MATCH',
+  // Live Match Actions
+  START_LIVE_MATCH = 'START_LIVE_MATCH',
+  UPDATE_LIVE_MATCH = 'UPDATE_LIVE_MATCH', // For minute-by-minute updates
+  END_LIVE_MATCH = 'END_LIVE_MATCH',
+  // PAUSE_LIVE_MATCH = 'PAUSE_LIVE_MATCH', // Could add later
+  // RESUME_LIVE_MATCH = 'RESUME_LIVE_MATCH', // Could add later
 }
 
+// Define action interfaces
 interface InitializeNewGameAction {
   type: ActionTypes.INITIALIZE_NEW_GAME;
   payload: GameState;
@@ -76,6 +83,23 @@ interface UpdateMatchAction {
   };
 }
 
+// Live Match Action Interfaces
+interface StartLiveMatchAction {
+  type: ActionTypes.START_LIVE_MATCH;
+  payload: { matchId: string };
+}
+
+interface UpdateLiveMatchAction {
+   type: ActionTypes.UPDATE_LIVE_MATCH;
+   payload: { liveMatchState: Partial<LiveMatchState> }; // Send partial updates
+}
+
+interface EndLiveMatchAction {
+   type: ActionTypes.END_LIVE_MATCH;
+   // No payload needed, just clears the liveMatch state
+}
+
+
 export type GameActions =
   | InitializeNewGameAction
   | LoadGameAction
@@ -86,4 +110,7 @@ export type GameActions =
   | MarkNewsReadAction
   | UpdateGameSettingsAction
   | ResetAutosaveCounterAction
-  | UpdateMatchAction;
+  | UpdateMatchAction
+  | StartLiveMatchAction
+  | UpdateLiveMatchAction
+  | EndLiveMatchAction;
