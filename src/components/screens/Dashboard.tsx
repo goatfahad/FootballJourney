@@ -11,6 +11,7 @@ import { Match, NewsItem } from '../../types/gameTypes';
 
 export const Dashboard: React.FC = () => {
   const { state } = useGame();
+  console.log("Deployed Dashboard state:", JSON.parse(JSON.stringify(state))); // Log the state for Netlify
   const [nextMatch, setNextMatch] = useState<Match | null>(null);
   const [latestNews, setLatestNews] = useState<NewsItem[]>([]);
   // Ensure state.teams is an array before finding playerTeam
