@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 export interface Player {
   id: string;
   name: string;
@@ -7,9 +9,11 @@ export interface Player {
   position: string;
   generalPosition: string;
   stats: PlayerStats;
+  personality: PlayerPersonality;
+  hiddenAttributes: PlayerHiddenAttributes;
   contract: PlayerContract;
   value: number;
-  morale: string;
+  morale: PlayerMorale;
   form: number;
   injury: PlayerInjury | null;
   suspension: PlayerSuspension | null;
@@ -17,10 +21,26 @@ export interface Player {
   historicalStats: PlayerSeasonalStats[];
   isRegen: boolean;
   willRetire: boolean;
-  status: string;
-  squadRole: string;
-  trainingFocus?: string; // Added optional training focus
+  status: PlayerStatus;
+  squadRole: SquadRole;
+  trainingFocus?: string;
+  relationships: PlayerRelationships;
   className: string;
+}
+
+export interface PlayerPersonality {
+  ambition: number;
+  professionalism: number;
+  loyalty: number;
+  leadership: number;
+  temperament: number;
+}
+
+export interface PlayerHiddenAttributes {
+  naturalFitness: number;
+  adaptability: number;
+  versatility: number;
+  bigGameFlair: number;
 }
 
 export interface PlayerStats {
@@ -71,6 +91,38 @@ export interface PlayerSeasonalStats {
   avgRating: number;
   season?: string;
   clubId?: string | null;
+}
+
+export enum PlayerMorale {
+  Ecstatic = "Ecstatic",
+  Happy = "Happy",
+  Content = "Content",
+  Unsettled = "Unsettled",
+  Unhappy = "Unhappy",
+  VeryUnhappy = "Very Unhappy"
+}
+
+export enum PlayerStatus {
+  Active = "Active",
+  Injured = "Injured",
+  Suspended = "Suspended",
+  Listed = "Listed",
+  AwayOnLoan = "Away on Loan"
+}
+
+export enum SquadRole {
+  KeyPlayer = "Key Player",
+  FirstTeam = "First Team",
+  RotationOption = "Rotation Option",
+  BackupPlayer = "Backup Player",
+  NotNeeded = "Not Needed",
+  HotProspect = "Hot Prospect",
+  YouthPlayer = "Youth Player"
+}
+
+export interface PlayerRelationships {
+  fellowPlayers: Map<string, number>;
+  manager: number;
 }
 
 export interface Team {
@@ -233,27 +285,26 @@ export interface NewsItem {
   isRead: boolean;
   data?: any;
   teamId?: string | null;
- }
+}
 
- export interface GameSettings {
-   autosaveInterval: number;
-   theme?: 'light' | 'dark'; // Theme setting
- }
+export interface GameSettings {
+  autosaveInterval: number;
+  theme?: 'light' | 'dark';
+}
 
- // State specific to a live match being viewed/simulated
- export interface LiveMatchState {
-   matchId: string;
-   minute: number;
-   homeScore: number;
-   awayScore: number;
-   status: 'playing' | 'paused' | 'half-time' | 'full-time';
-   ballPosition: { x: number; y: number };
-   commentary: MatchCommentary[];
-   liveHomeTactics?: Partial<TeamTactics>;
-   liveAwayTactics?: Partial<TeamTactics>;
- }
+export interface LiveMatchState {
+  matchId: string;
+  minute: number;
+  homeScore: number;
+  awayScore: number;
+  status: 'playing' | 'paused' | 'half-time' | 'full-time';
+  ballPosition: { x: number; y: number };
+  commentary: MatchCommentary[];
+  liveHomeTactics?: Partial<TeamTactics>;
+  liveAwayTactics?: Partial<TeamTactics>;
+}
 
- export interface GameState {
+export interface GameState {
   currentDate: string;
   playerTeamId: string | null;
   teams: Team[];
@@ -261,36 +312,29 @@ export interface NewsItem {
   leagues: League[];
   news: NewsItem[];
   gameSettings: GameSettings;
-  transferOfferQueue: any[]; // Consider defining a specific type
-  jobOffers: any[]; // Consider defining a specific type
+  transferOfferQueue: any[];
+  jobOffers: any[];
   seasonYear: number;
   processedEndOfSeason: boolean;
   autosaveCounter: number;
   gameLoaded: boolean;
-  liveMatch: LiveMatchState | null; // State for the currently viewed live match
+  liveMatch: LiveMatchState | null;
 }
-
-// Old MatchState removed
 
 export interface NewGameSettings {
   managerName: string;
-  selectedClubId: string; // Note: This might need changing if selection is dynamic
+  selectedClubId: string;
   playersPerTeam: number;
 }
 
 export interface TransferOffer {
-  player: Player | null; // Consider just storing IDs?
+  player: Player | null;
   fee: number;
-  // Add offering team ID, status etc.
 }
 
 export interface ContractOffer {
-  player: Player | null; // Consider just storing IDs?
+  player: Player | null;
   wage: number;
   years: number;
   signingBonus: number;
-  // Add offering team ID, status etc.
-  // Remove fields related to transfer if this is purely contract
-  // originalFee: number;
-  // sellingClubId: string | null;
 }
