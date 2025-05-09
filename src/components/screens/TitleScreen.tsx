@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react'; // Added useMemo
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../../context/GameContext';
 import { Button } from '../ui/Button';
@@ -6,10 +6,6 @@ import { NewGameModal } from '../modals/NewGameModal';
 import { LoadGameModal } from '../modals/LoadGameModal';
 import { loadSavedGamesList } from '../../utils/storage';
 import { toast } from 'react-toastify';
-// ActionTypes and initialGameState might not be strictly needed here anymore
-// if all game state setup is handled within modals and reducer.
-// import { ActionTypes } from '../../types/actionTypes'; 
-// import { initialGameState } from '../../data/initialState';
 
 // LinkedIn Icon SVG
 const LinkedInIcon = () => (
@@ -25,38 +21,45 @@ const LinkedInIcon = () => (
   </svg>
 );
 
-
 interface TitleScreenProps {
-  setIsLoaded: (loaded: boolean) => void; // This prop is from App.tsx for its local loading state
+  setIsLoaded: (loaded: boolean) => void;
 }
 
 export const TitleScreen: React.FC<TitleScreenProps> = ({ setIsLoaded }) => {
-  // Removed dispatch and related imports if TitleScreen itself doesn't reset game state directly
-  // const { state: gameState, dispatch } = useGame(); 
-  const { state: gameState } = useGame(); // Only need state if checking gameLoaded for some reason
+  const { state: gameState } = useGame();
   const navigate = useNavigate();
   const [showNewGameModal, setShowNewGameModal] = useState(false);
   const [showLoadGameModal, setShowLoadGameModal] = useState(false);
   const [savedGames, setSavedGames] = useState<Array<{name: string, timestamp: string}>>([]);
   const [gameLoadProcessInitiated, setGameLoadProcessInitiated] = useState(false);
 
+  const quotes = useMemo(() => [
+    { text: "Success is no accident. It is hard work, perseverance, learning, studying, sacrifice and most of all, love of what you are doing or learning to do.", author: "Pelé" },
+    { text: "I learned all about life with a ball at my feet.", author: "Ronaldinho" },
+    { text: "You have to fight to reach your dream. You have to sacrifice and work hard for it.", author: "Lionel Messi" },
+    { text: "I fear no one, but respect everyone.", author: "Zlatan Ibrahimović" },
+    { text: "Some people think football is a matter of life and death. I don't like that attitude. I can assure them it is much more serious than that.", author: "Bill Shankly" }
+  ], []);
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+
   useEffect(() => {
-    // Load saved games list when the component mounts
+    const quoteInterval = setInterval(() => {
+      setCurrentQuoteIndex((prevIndex) => (prevIndex + 1) % quotes.length);
+    }, 7000); // Change quote every 7 seconds
+
+    return () => clearInterval(quoteInterval);
+  }, [quotes.length]);
+
+  useEffect(() => {
     setSavedGames(loadSavedGamesList());
-    // The responsibility of resetting gameLoaded to false when on TitleScreen
-    // should ideally be handled by a route change listener in App.tsx or GameContext,
-    // or by ensuring modals/navigation always set gameLoaded appropriately.
-    // For now, assuming modals handle setting gameLoaded to true upon success.
-    // And App.tsx might handle setting it to false if navigating TO "/"
-    setIsLoaded(false); // Indicate App.tsx that title screen is active (for its local loading state)
+    setIsLoaded(false); 
   }, [setIsLoaded]);
 
-  // Effect to handle navigation after game state is confirmed loaded from context
   useEffect(() => {
     if (gameState.gameLoaded && gameLoadProcessInitiated) {
-      setIsLoaded(true); // Signal App.tsx that game data is ready
+      setIsLoaded(true); 
       navigate('/game/dashboard');
-      setGameLoadProcessInitiated(false); // Reset flag
+      setGameLoadProcessInitiated(false); 
     }
   }, [gameState.gameLoaded, gameLoadProcessInitiated, navigate, setIsLoaded]);
 
@@ -72,24 +75,33 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ setIsLoaded }) => {
     setShowLoadGameModal(true);
   };
 
-  // These are called by the modals AFTER the modals have dispatched actions
-  // to update the GameContext (which should set gameLoaded = true)
   const handleNewGameCreated = () => {
     setShowNewGameModal(false); 
-    setGameLoadProcessInitiated(true); // Trigger useEffect to check gameLoaded and navigate
+    setGameLoadProcessInitiated(true); 
   };
 
   const handleGameLoaded = () => {
     setShowLoadGameModal(false); 
-    setGameLoadProcessInitiated(true); // Trigger useEffect to check gameLoaded and navigate
+    setGameLoadProcessInitiated(true); 
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 dark:bg-gray-950 text-gray-200 p-4 relative">
-      <div className="w-full max-w-lg flex flex-col items-center justify-center text-center">
-        <h1 className="text-6xl md:text-7xl font-bold mb-10 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 text-transparent bg-clip-text animate-pulse">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 dark:bg-gray-950 text-gray-200 p-4 relative overflow-hidden"> {/* Added overflow-hidden for panning */}
+      <div className="w-full max-w-lg flex flex-col items-center justify-center text-center z-10"> {/* Ensure content is above quotes if they overlap */}
+        <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 text-transparent bg-clip-text animate-pulse">
           FootballJourney
         </h1>
+
+        {/* Panning Quotes Area */}
+        <div className="h-16 mb-8 w-full max-w-md relative"> {/* Increased height, relative for absolute positioning of quote text */}
+          <div 
+            key={currentQuoteIndex} // Change key to re-trigger animation
+            className="absolute inset-0 flex flex-col items-center justify-center animate-panQuoteLR" // Apply panning animation (to be defined in CSS)
+          >
+            <p className="text-md italic text-gray-300 dark:text-gray-400 text-center">"{quotes[currentQuoteIndex].text}"</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">- {quotes[currentQuoteIndex].author}</p>
+          </div>
+        </div>
         
         <div className="space-y-5 w-full max-w-xs">
           <Button 
@@ -112,7 +124,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ setIsLoaded }) => {
         </div>
       </div>
 
-      <footer className="absolute bottom-4 left-0 right-0 text-center text-xs text-gray-500 dark:text-gray-600 space-y-1">
+      <footer className="absolute bottom-4 left-0 right-0 text-center text-xs text-gray-500 dark:text-gray-600 space-y-1 z-10">
          <p>Version 1.0.0</p>
          <p>Created by Muhammad Fahad Nauman</p>
          <a 
@@ -122,7 +134,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ setIsLoaded }) => {
            aria-label="Muhammad Fahad Nauman LinkedIn Profile"
            className="inline-block mt-1"
          >
-           <LinkedInIcon /> {/* Use the actual SVG component */}
+           <LinkedInIcon />
          </a>
       </footer>
 

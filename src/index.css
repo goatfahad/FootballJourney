@@ -1,3 +1,48 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-100 text-gray-900 dark:bg-gray-950 dark:text-gray-200;
+  }
+}
+
+/* Styles for SortableJS drag effect */
+.sortable-drag-item {
+  opacity: 0.5 !important;
+  transform: scale(1.05) !important;
+  background-color: #60a5fa !important; 
+}
+
+/* Styles for SortableJS ghost elements */
+.sortable-ghost-pitch {
+  opacity: 0.5 !important;
+  background-color: #93c5fd !important; 
+  border: 2px dashed #ffffff !important;
+}
+
+.sortable-ghost-bench {
+  opacity: 0.5 !important;
+  background-color: #4b5563 !important; 
+  border: 1px dashed #9ca3af !important;
+}
+
+@keyframes panQuoteLR {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  15%, 20% { /* Arrive and start pause */
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  80%, 85% { /* End pause and start leaving */
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
