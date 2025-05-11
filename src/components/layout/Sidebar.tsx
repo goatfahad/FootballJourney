@@ -1,5 +1,6 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom'; // Removed useLocation as it's not used
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useGame } from '../../context/GameContext';
 import { Button } from '../ui/Button';
 import { ActionTypes } from '../../types/actionTypes';
@@ -8,7 +9,8 @@ import dayjs from 'dayjs'; // Ensure dayjs is imported
 
 export const Sidebar: React.FC = () => {
   const { state, dispatch, startLoading, stopLoading } = useGame();
-  const navigate = useNavigate();
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Ensure news array exists before filtering
   const unreadMessagesCount = Array.isArray(state.news) ? state.news.filter(
@@ -60,132 +62,38 @@ export const Sidebar: React.FC = () => {
      // Added dark mode variants for background and links
      <nav className="w-1/5 bg-white dark:bg-gray-800 p-1 sm:p-4 rounded-lg shadow-lg mr-1 sm:mr-4 sticky top-[88px] h-[calc(100vh-100px)] overflow-y-auto border-r border-gray-200 dark:border-gray-700">
        <ul className="space-y-2">
+         {[
+           { href: "/game/dashboard", label: "Dashboard" },
+           { href: "/game/squad", label: "Squad" },
+           // { href: "/game/tactics", label: "Tactics" }, // Tactics screen removed for now
+           { href: "/game/fixtures", label: "Fixtures" },
+           { href: "/game/league-table", label: "League Table" },
+           { href: "/game/transfers", label: "Transfer Market" },
+           { href: "/game/finances", label: "Finances" },
+           { href: "/game/training", label: "Training & Youth" },
+           { href: "/game/inbox", label: "Inbox", count: unreadMessagesCount },
+           { href: "/game/settings", label: "Settings & Save" },
+         ].map((item) => (
+           item.href && // Ensure item.href is defined (for the removed tactics link)
+           <li key={item.href}>
+             <Link
+               href={item.href}
+               className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
+                 pathname === item.href
+                   ? "bg-blue-500 text-white"
+                   : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+               }`}
+             >
+               {item.label}
+               {item.label === "Inbox" && item.count !== undefined && item.count > 0 && (
+                 <span className="ml-1 inline-block py-0.5 px-1.5 leading-none text-center whitespace-nowrap align-baseline font-bold bg-red-500 text-white rounded-full text-xs">
+                   {item.count}
+                 </span>
+               )}
+             </Link>
+           </li>
+         ))}
          <li>
-           <NavLink 
-             to="/game/dashboard"
-             className={({ isActive }) => 
-               isActive 
-                 ? "block w-full text-left px-3 py-2 rounded-md text-sm font-medium bg-blue-500 text-white" // Active state remains the same
-                 : "block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" // Default state with dark variants
-            }
-           >
-             Dashboard
-           </NavLink>
-         </li>
-         <li>
-           <NavLink 
-             to="/game/squad"
-             className={({ isActive }) => 
-               isActive 
-                 ? "block w-full text-left px-3 py-2 rounded-md text-sm font-medium bg-blue-500 text-white" 
-                 : "block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }
-           >
-             Squad
-           </NavLink>
-         </li>
-         <li>
-           <NavLink 
-             to="/game/tactics"
-             className={({ isActive }) => 
-               isActive 
-                 ? "block w-full text-left px-3 py-2 rounded-md text-sm font-medium bg-blue-500 text-white" 
-                 : "block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }
-           >
-             Tactics
-           </NavLink>
-         </li>
-         <li>
-           <NavLink 
-             to="/game/fixtures"
-             className={({ isActive }) => 
-               isActive 
-                 ? "block w-full text-left px-3 py-2 rounded-md text-sm font-medium bg-blue-500 text-white" 
-                 : "block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }
-           >
-             Fixtures
-           </NavLink>
-         </li>
-         <li>
-           <NavLink 
-             to="/game/league-table"
-             className={({ isActive }) => 
-               isActive 
-                 ? "block w-full text-left px-3 py-2 rounded-md text-sm font-medium bg-blue-500 text-white" 
-                 : "block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }
-           >
-             League Table
-           </NavLink>
-         </li>
-         <li>
-           <NavLink 
-             to="/game/transfers"
-             className={({ isActive }) => 
-               isActive 
-                 ? "block w-full text-left px-3 py-2 rounded-md text-sm font-medium bg-blue-500 text-white" 
-                 : "block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }
-           >
-             Transfer Market
-           </NavLink>
-         </li>
-         <li>
-           <NavLink 
-             to="/game/finances"
-             className={({ isActive }) => 
-               isActive 
-                 ? "block w-full text-left px-3 py-2 rounded-md text-sm font-medium bg-blue-500 text-white" 
-                 : "block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }
-           >
-             Finances
-           </NavLink>
-         </li>
-         <li>
-           <NavLink 
-             to="/game/training"
-             className={({ isActive }) => 
-               isActive 
-                 ? "block w-full text-left px-3 py-2 rounded-md text-sm font-medium bg-blue-500 text-white" 
-                 : "block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }
-           >
-             Training & Youth
-           </NavLink>
-         </li>
-         <li>
-           <NavLink 
-             to="/game/inbox"
-             className={({ isActive }) => 
-               isActive 
-                 ? "block w-full text-left px-3 py-2 rounded-md text-sm font-medium bg-blue-500 text-white" 
-                 : "block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }
-          >
-            Inbox
-            {unreadMessagesCount > 0 && (
-              <span className="ml-1 inline-block py-0.5 px-1.5 leading-none text-center whitespace-nowrap align-baseline font-bold bg-red-500 text-white rounded-full text-xs">
-                {unreadMessagesCount}
-              </span>
-             )}
-           </NavLink>
-         </li>
-         <li>
-           <NavLink 
-             to="/game/settings"
-             className={({ isActive }) => 
-               isActive 
-                 ? "block w-full text-left px-3 py-2 rounded-md text-sm font-medium bg-blue-500 text-white" 
-                 : "block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }
-          >
-            Settings & Save
-          </NavLink>
-        </li>
-        <li>
           <Button
             onClick={() => advanceTime(1)} 
             variant="success"
