@@ -1,13 +1,36 @@
 import dayjs from 'dayjs';
 
+export type PlayerDuty = 'Defend' | 'Support' | 'Attack';
+
+export type PlayerRole =
+  | 'Goalkeeper'
+  | 'CentreBack'
+  | 'FullBack'
+  | 'InvertedWingBack'
+  | 'DefensiveMidfielder'
+  | 'Anchor'
+  | 'BallWinningMidfielder'
+  | 'CentralMidfielder'
+  | 'BoxToBoxMidfielder'
+  | 'Playmaker' // Can be used for Deep-Lying Playmaker or Central Playmaker
+  | 'AttackingMidfielder' // General Attacking Midfielder
+  | 'AdvancedPlaymaker'
+  | 'ShadowStriker'
+  | 'Winger'
+  | 'InsideForward'
+  | 'TargetMan'
+  | 'Poacher'
+  | 'DeepLyingForward'
+  | 'FalseNine';
+
 export interface Player {
   id: string;
   name: string;
   age: number;
   dob: string;
   nationality: string;
-  position: string;
-  generalPosition: string;
+  position: string; // General position like Defender, Midfielder
+  generalPosition: string; // More specific like DC, ST - useful for formation slots
   stats: PlayerStats;
   personality: PlayerPersonality;
   hiddenAttributes: PlayerHiddenAttributes;
@@ -26,6 +49,8 @@ export interface Player {
   trainingFocus?: string;
   relationships: PlayerRelationships;
   className: string;
+  assignedRole?: PlayerRole; // Tactical role assigned for the current match/setup
+  assignedDuty?: PlayerDuty; // Tactical duty assigned for the current match/setup
 }
 
 export interface PlayerPersonality {
@@ -268,8 +293,8 @@ export interface Team {
   playerIds: string[];
   staffIds: string[];
   squad: TeamSquad;
-  formation: string;
-  tactics: TeamTactics;
+  formation: string; // This likely stores the formation key e.g. "4-4-2"
+  tactics: TeamTactics; // General team tactics
   finances: TeamFinances;
   infrastructure: Infrastructure;
   boardExpectations: BoardExpectations;
@@ -279,16 +304,34 @@ export interface Team {
   className: string;
 }
 
-export interface TeamSquad {
-  startingXI: string[];
-  subs: string[];
-  reserves: string[];
+// It might be beneficial to have a more structured type for tactical setup
+// For example, representing each slot in a formation with player, role, and duty.
+// For now, role/duty are on Player, representing their current assignment.
+export interface TacticalSlot {
+  positionKey: string; // e.g., 'DC_left', 'ST_right' - unique identifier for the slot
+  playerId: string | null;
+  role?: PlayerRole;
+  duty?: PlayerDuty;
 }
 
-export interface TeamTactics {
+export interface TeamFormation {
+  name: string; // e.g., "4-4-2 Diamond"
+  slots: TacticalSlot[];
+}
+
+
+export interface TeamSquad {
+  startingXI: string[]; // Array of Player IDs
+  subs: string[]; // Array of Player IDs
+  reserves: string[]; // Array of Player IDs
+}
+
+export interface TeamTactics { // These are general team instructions
   mentality: string;
   passingStyle: string;
   pressingIntensity: string;
+  // We might add more here later, like defensive line, width, tempo etc.
+  // Player-specific instructions will be driven by their role/duty for now.
 }
 
 export interface TeamFinances {
@@ -366,6 +409,10 @@ export interface Match {
   stats: MatchStats;
   commentaryLog: MatchCommentary[];
   className: string;
+  // We'll need to store the tactical setup for each team for the match
+  // including player roles and duties, perhaps as snapshots.
+  homeTeamTacticalSetup?: TacticalSlot[]; // Snapshot of roles/duties for home team
+  awayTeamTacticalSetup?: TacticalSlot[]; // Snapshot of roles/duties for away team
 }
 
 export interface MatchResult {
@@ -421,8 +468,11 @@ export interface LiveMatchState {
   status: 'playing' | 'paused' | 'half-time' | 'full-time';
   ballPosition: { x: number; y: number };
   commentary: MatchCommentary[];
-  liveHomeTactics?: Partial<TeamTactics>;
-  liveAwayTactics?: Partial<TeamTactics>;
+  liveHomeTactics?: Partial<TeamTactics>; // General team tactics
+  liveAwayTactics?: Partial<TeamTactics>; // General team tactics
+  // For live match, we'd also need the specific player roles/duties
+  liveHomePlayerAssignments?: TacticalSlot[];
+  liveAwayPlayerAssignments?: TacticalSlot[];
 }
 
 export interface GameState {
@@ -441,6 +491,9 @@ export interface GameState {
   autosaveCounter: number;
   gameLoaded: boolean;
   liveMatch: LiveMatchState | null;
+  // It might be good to store the current team's detailed tactical setup here
+  // if it's not directly on the Team object or if multiple setups are possible.
+  // For now, player.assignedRole/Duty will hold the current active assignment.
 }
 
 export interface NewGameSettings {
@@ -450,13 +503,22 @@ export interface NewGameSettings {
 }
 
 export interface TransferOffer {
-  player: Player | null;
+  player: Player | null; // Should ideally be Player ID and then resolved
   fee: number;
+  // Add more details: offeringClubId, targetClubId, clauses, etc.
 }
 
 export interface ContractOffer {
-  player: Player | null;
+  player: Player | null; // Should ideally be Player ID
   wage: number;
   years: number;
   signingBonus: number;
+  // Add more details: clubId offering, etc.
+}
+
+// Added for clarity, though not directly part of this step's core changes
+// This represents a player who is part of a youth intake.
+export interface YouthCandidate extends Player {
+  potentialRating: number; // e.g. A, B, C or 1-5 stars
+  scoutNotes: string;
 }

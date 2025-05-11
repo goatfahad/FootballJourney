@@ -1,7 +1,10 @@
-import { GameState, NewGameSettings, League, Team, Player } from '../types/gameTypes';
+import { GameState, NewGameSettings, League, Team, Player, Match } from '../types/gameTypes';
 import { generateId } from '../utils/idGenerator';
 import { createPlayer, createTeam } from './dataGenerator';
 import dayjs from 'dayjs';
+import weekday from 'dayjs/plugin/weekday';
+
+dayjs.extend(weekday);
 
 const START_DATE = "2023-07-01";
 const DEFAULT_PLAYERS_PER_TEAM = 20;
@@ -19,6 +22,61 @@ const leagueSetups: LeagueConfig[] = [
   { name: 'Primera Liga', country: 'Spain', teamsCount: 6, tier: 1 },
   { name: 'Segunda Liga', country: 'Spain', teamsCount: 6, tier: 2 },
 ];
+
+const generateLeagueFixtures = (leagueId: string, teamIds: string[], seasonStartDate: string): Match[] => {
+  const fixtures: Match[] = [];
+  if (teamIds.length < 2) return fixtures;
+
+  let teams = [...teamIds];
+  // If odd number of teams, add a "bye" placeholder
+  if (teams.length % 2 !== 0) {
+    teams.push("BYE");
+  }
+  const numTeams = teams.length;
+  const numRounds = (numTeams - 1) * 2; // Play each team home and away
+  const matchesPerRound = numTeams / 2;
+  let matchDate = dayjs(seasonStartDate);
+
+  // Find the first Saturday from the season start date
+  matchDate = matchDate.weekday(6); // 6 for Saturday (0 for Sunday, 1 for Monday, etc.)
+
+  for (let round = 0; round < numRounds; round++) {
+    for (let i = 0; i < matchesPerRound; i++) {
+      const homeTeamId = teams[i];
+      const awayTeamId = teams[numTeams - 1 - i];
+
+      if (homeTeamId !== "BYE" && awayTeamId !== "BYE") {
+        // Alternate home/away for the second half of the season
+        const isSecondHalf = round >= (numTeams - 1);
+        const currentHome = isSecondHalf ? awayTeamId : homeTeamId;
+        const currentAway = isSecondHalf ? homeTeamId : awayTeamId;
+
+        fixtures.push({
+          id: generateId('match_'),
+          homeTeamId: currentHome,
+          awayTeamId: currentAway,
+          date: matchDate.toISOString(),
+          leagueId,
+          status: 'scheduled',
+          result: { homeScore: 0, awayScore: 0 },
+          events: [],
+          stats: { homeShots: 0, awayShots: 0, homeShotsOnTarget: 0, awayShotsOnTarget: 0, homePossession: 0, awayPossession: 0 },
+          commentaryLog: [],
+          className: 'Match',
+        });
+      }
+    }
+
+    // Rotate teams for the next round (except the first team)
+    const lastTeam = teams.pop();
+    if (lastTeam) { // Should always be true unless teams array was empty
+        teams.splice(1, 0, lastTeam);
+    }
+    
+    matchDate = matchDate.add(1, 'week'); // Advance to next week's matchday
+  }
+  return fixtures;
+};
 
 export const initializeNewGame = async (settings: NewGameSettings): Promise<GameState> => {
   return new Promise((resolve) => {
@@ -40,7 +98,7 @@ export const initializeNewGame = async (settings: NewGameSettings): Promise<Game
           country: leagueConfig.country,
           level: leagueConfig.tier,
           teamIds: [],
-          fixtures: [], // Fixtures should be generated separately if complex
+          fixtures: [], // Initialize empty, will be populated below
           table: [],    // Initialize empty table
           promotionSpots: leagueConfig.tier === 1 ? 2 : 3, // Example
           relegationSpots: leagueConfig.tier === 1 ? 3 : 2, // Example
@@ -50,7 +108,6 @@ export const initializeNewGame = async (settings: NewGameSettings): Promise<Game
         };
 
         for (let i = 0; i < leagueConfig.teamsCount; i++) {
-          // Pass league.id, leagueConfig.country, league.name to createTeam
           const team = createTeam(league.id, leagueConfig.country, league.name);
           console.log(`[GameInitializer] Created team: ${team.name} (ID: ${team.id}) for league ${league.name}`);
           
@@ -64,32 +121,29 @@ export const initializeNewGame = async (settings: NewGameSettings): Promise<Game
           newTeams.push(team);
           league.teamIds.push(team.id);
           
-          // Initialize table entry for this team
           league.table.push({
              teamId: team.id, played: 0, won: 0, drawn: 0, lost: 0,
              goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0
           });
 
-          // This logic for determinedPlayerTeamId needs to be robust.
-          // If settings.selectedClubId is a placeholder like 'team_1', it won't match generated IDs.
-          // For now, if it's the first team of the first league, and a specific placeholder ID was passed, try to use it.
-          // Otherwise, the fallback will take over.
           if (leagueConfig.name === 'Premier Division' && i === 0 && settings.selectedClubId === 'team_1') {
             determinedPlayerTeamId = team.id; 
           } else if (leagueConfig.name === 'Premier Division' && i === 1 && settings.selectedClubId === 'team_2') {
             determinedPlayerTeamId = team.id;
-          } // Add more specific mappings if NewGameModal uses a fixed list of selectable IDs/names
+          } 
           
-          // Fallback if no specific match or if it's the first team overall
           if (i === 0 && leagueSetups.indexOf(leagueConfig) === 0 && !newTeams.find(t => t.id === determinedPlayerTeamId)) {
             determinedPlayerTeamId = team.id;
           }
         }
+        // Generate fixtures for the league
+        league.fixtures = generateLeagueFixtures(league.id, league.teamIds, START_DATE);
+        console.log(`[GameInitializer] Generated ${league.fixtures.length} fixtures for league: ${league.name}`);
+        
         console.log(`[GameInitializer] Finished creating league: ${league.name} with ${league.teamIds.length} teams.`);
         newLeagues.push(league);
       });
       
-      // Final check and default for playerTeamId if still not validly set
       if (newTeams.length > 0 && (!determinedPlayerTeamId || !newTeams.find(t => t.id === determinedPlayerTeamId))) {
         console.warn(`[GameInitializer] playerTeamId '${determinedPlayerTeamId}' not found among generated teams or was null. Defaulting to first generated team.`);
         determinedPlayerTeamId = newTeams[0].id;
@@ -102,6 +156,7 @@ export const initializeNewGame = async (settings: NewGameSettings): Promise<Game
         playerTeamId: determinedPlayerTeamId,
         teams: newTeams,
         players: newPlayers,
+        staff: [], // Added missing staff property
         leagues: newLeagues,
         news: [{
           id: generateId('news_'),
@@ -114,7 +169,7 @@ export const initializeNewGame = async (settings: NewGameSettings): Promise<Game
         }],
         gameSettings: {
           autosaveInterval: 7,
-          theme: 'dark' // Default theme
+          theme: 'dark'
         },
         transferOfferQueue: [],
         jobOffers: [],

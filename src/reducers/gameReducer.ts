@@ -229,6 +229,20 @@ export const gameReducer = (state: GameState, action: GameActions): GameState =>
         }))
       };
 
+    case ActionTypes.UPDATE_PLAYER_TACTICAL_ASSIGNMENT:
+      return {
+        ...state,
+        players: (state.players || []).map(player =>
+          player.id === action.payload.playerId
+            ? {
+                ...player,
+                assignedRole: action.payload.role,
+                assignedDuty: action.payload.duty,
+              }
+            : player
+        ),
+      };
+
     default:
       // https://github.com/typescript-eslint/typescript-eslint/issues/1134
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-case-declarations

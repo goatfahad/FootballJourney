@@ -1,4 +1,4 @@
-import { Player, Team, League, YouthCandidate } from '../types/gameTypes';
+import { Player, Team, League, YouthCandidate, PlayerMorale, PlayerStatus, SquadRole, StadiumFacilities, MatchdayIncome, TrainingFacilities, YouthAcademy, DataAnalysisFacilities, MedicalCenter, Infrastructure, PlayerPersonality, PlayerHiddenAttributes, PlayerRelationships } from '../types/gameTypes';
 import { generateId } from '../utils/idGenerator';
 import { faker } from '@faker-js/faker';
 import dayjs from 'dayjs'; // Ensure dayjs is imported
@@ -6,6 +6,8 @@ import dayjs from 'dayjs'; // Ensure dayjs is imported
 const MIN_AGE = 16;
 const MAX_AGE = 38;
 const BASE_PLAYER_VALUE = 50000;
+
+const getRandomStat = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 /**
  * Create a new player
@@ -28,7 +30,25 @@ export const createPlayer = (
 
   const generalPosition = mapToGeneralPosition(position);
 
-  const getRandomStat = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+  const defaultPersonality: PlayerPersonality = {
+    ambition: getRandomStat(1, 20),
+    professionalism: getRandomStat(1, 20),
+    loyalty: getRandomStat(1, 20),
+    leadership: getRandomStat(1, 20),
+    temperament: getRandomStat(1, 20),
+  };
+
+  const defaultHiddenAttributes: PlayerHiddenAttributes = {
+    naturalFitness: getRandomStat(1, 20),
+    adaptability: getRandomStat(1, 20),
+    versatility: getRandomStat(1, 20),
+    bigGameFlair: getRandomStat(1, 20),
+  };
+
+  const defaultRelationships: PlayerRelationships = {
+    fellowPlayers: new Map(),
+    manager: getRandomStat(0, 100),
+  };
 
   const player: Player = {
     id: generateId('player_'),
@@ -66,8 +86,10 @@ export const createPlayer = (
       signingBonus: 0,
       releaseClause: 0
     },
+    personality: defaultPersonality,
+    hiddenAttributes: defaultHiddenAttributes,
     value: 0, // Will be calculated
-    morale: 'Content',
+    morale: PlayerMorale.Content,
     form: 0,
     injury: null,
     suspension: null,
@@ -80,8 +102,9 @@ export const createPlayer = (
     historicalStats: [],
     isRegen: isYouth,
     willRetire: false,
-    status: 'Active',
-    squadRole: 'Reserve',
+    status: PlayerStatus.Active,
+    squadRole: SquadRole.BackupPlayer, // Changed from 'Reserve'
+    relationships: defaultRelationships,
     className: 'Player'
   };
 
@@ -100,6 +123,72 @@ export const createTeam = (leagueId: string, country: string, leagueName: string
   const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
   const teamName = `${city} ${suffix}`;
 
+  const defaultStadiumFacilities: StadiumFacilities = {
+    seatingQuality: getRandomStat(50, 90),
+    hospitality: getRandomStat(40, 80),
+    parking: getRandomStat(30, 70),
+    foodAndBeverage: getRandomStat(40, 80),
+    accessibility: getRandomStat(50, 90),
+  };
+
+  const defaultMatchdayIncome: MatchdayIncome = {
+    ticketRevenue: 0,
+    hospitalityRevenue: 0,
+    foodAndBeverageRevenue: 0,
+    merchandiseRevenue: 0,
+  };
+
+  const defaultTrainingFacilities: TrainingFacilities = {
+    id: generateId('tf_'),
+    level: getRandomStat(1, 5),
+    condition: getRandomStat(60, 100),
+    specializations: [],
+    maintenanceCost: getRandomStat(5000, 20000),
+  };
+
+  const defaultYouthAcademy: YouthAcademy = {
+    id: generateId('ya_'),
+    level: getRandomStat(1, 5),
+    reputation: getRandomStat(20, 80),
+    facilities: getRandomStat(30, 90),
+    coaching: getRandomStat(30, 90),
+    recruitment: getRandomStat(30, 90),
+    maintenanceCost: getRandomStat(5000, 20000),
+  };
+
+  const defaultDataAnalysisFacilities: DataAnalysisFacilities = {
+    id: generateId('daf_'),
+    level: getRandomStat(1, 5),
+    equipment: getRandomStat(30, 90),
+    staff: getRandomStat(1, 5),
+    maintenanceCost: getRandomStat(2000, 10000),
+  };
+
+  const defaultMedicalCenter: MedicalCenter = {
+    id: generateId('mc_'),
+    level: getRandomStat(1, 5),
+    equipment: getRandomStat(40, 95),
+    staff: getRandomStat(1, 5),
+    rehabilitationQuality: getRandomStat(40, 95),
+    maintenanceCost: getRandomStat(3000, 15000),
+  };
+
+  const teamInfrastructure: Infrastructure = {
+    stadium: {
+      id: generateId('std_'),
+      name: `${teamName} Stadium`,
+      capacity: Math.floor(Math.random() * 50000) + 10000,
+      facilities: defaultStadiumFacilities,
+      condition: getRandomStat(70, 100),
+      expansionPossible: Math.random() > 0.5,
+      matchdayIncome: defaultMatchdayIncome,
+    },
+    trainingFacilities: defaultTrainingFacilities,
+    youthAcademy: defaultYouthAcademy,
+    dataAnalysisFacilities: defaultDataAnalysisFacilities,
+    medicalCenter: defaultMedicalCenter,
+  };
+
   const team: Team = {
     id: generateId('team_'),
     name: teamName,
@@ -109,6 +198,7 @@ export const createTeam = (leagueId: string, country: string, leagueName: string
     leagueName,
     logo: '',
     playerIds: [],
+    staffIds: [], // Added missing staffIds
     squad: {
       startingXI: [],
       subs: [],
@@ -126,18 +216,20 @@ export const createTeam = (leagueId: string, country: string, leagueName: string
       transferBudget: Math.floor(Math.random() * 10000000) + 1000000,
       sponsorships: [],
       incomeLastMonth: 0,
-      expensesLastMonth: 0
+      expensesLastMonth: 0,
+      infrastructureMaintenance: getRandomStat(10000, 50000),
+      debtPayments: 0,
+      merchandiseIncome: 0,
+      tvRights: getRandomStat(1000000, 10000000),
+      prizeMoney: 0,
     },
-    stadium: {
-      name: `${teamName} Stadium`,
-      capacity: Math.floor(Math.random() * 50000) + 10000
-    },
-    trainingFacilitiesLevel: Math.floor(Math.random() * 3) + 1,
-    youthFacilitiesLevel: Math.floor(Math.random() * 3) + 1,
+    infrastructure: teamInfrastructure,
     boardExpectations: {
       leaguePosition: Math.floor(Math.random() * 10) + 1,
       cupPerformance: 'Quarter Finals',
-      financialStability: 'Maintain positive balance'
+      financialStability: 'Maintain positive balance',
+      youthDevelopment: 'Develop young players for the first team',
+      playingStyle: 'Play attacking football',
     },
     manager: {
       name: faker.person.fullName(),
@@ -152,22 +244,34 @@ export const createTeam = (leagueId: string, country: string, leagueName: string
 };
 
 export const createYouthCandidate = (teamYouthFacilityLevel: number, teamCountry: string): YouthCandidate => {
-  const age = Math.floor(Math.random() * 3) + 15; // 15-17
-  const positions = ['GK', 'DR', 'DC', 'DL', 'DMC', 'MC', 'AMC', 'ST'];
-  const position = positions[Math.floor(Math.random() * positions.length)];
+  // Create a base young player. ClubId is null as they are not signed to any club yet.
+  // Age range for youth candidates is typically 15-17.
+  const basePlayer = createPlayer(null, [15, 17], true);
 
-  const potentialBase = 50 + (teamYouthFacilityLevel * 6);
-  const potential = Math.floor(Math.random() * Math.min(95, potentialBase + 25)) + potentialBase;
+  // Adjust potential based on youth facility level more directly if needed,
+  // or rely on createPlayer's isYouth flag which already influences potential.
+  // For simplicity, we'll use the potential generated by createPlayer.
+  const potential = basePlayer.stats.potential;
 
-  return {
-    id: generateId('yc_'),
-    age,
-    position,
-    potentialStars: Math.max(1, Math.ceil(potential / 19)),
-    potentialActual: potential,
-    nationality: Math.random() < 0.7 ? teamCountry : ['English', 'Spanish', 'German', 'Italian', 'French'][Math.floor(Math.random() * 5)],
-    nameStub: `${faker.person.firstName()} ${faker.person.lastName()}`
+  // Determine potentialRating (stars) based on the player's generated potential
+  // Example: 81-100 -> 5 stars, 66-80 -> 4 stars, 51-65 -> 3 stars, 36-50 -> 2 stars, <=35 -> 1 star
+  let potentialRating = 1;
+  if (potential > 80) potentialRating = 5;
+  else if (potential > 65) potentialRating = 4;
+  else if (potential > 50) potentialRating = 3;
+  else if (potential > 35) potentialRating = 2;
+
+  const youthCandidate: YouthCandidate = {
+    ...basePlayer,
+    id: generateId('yc_'), // Override ID with youth candidate prefix
+    nationality: Math.random() < 0.7 ? teamCountry : basePlayer.nationality, // Higher chance of team's nationality
+    potentialRating,
+    scoutNotes: `A promising young talent from ${basePlayer.nationality}. Shows potential to be a future ${basePlayer.squadRole}.`,
+    // Ensure className is 'Player' as YouthCandidate extends Player.
+    // createPlayer already sets this, so it's inherited.
   };
+
+  return youthCandidate;
 };
 
 function mapToGeneralPosition(specificPosition: string): string {

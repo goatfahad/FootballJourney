@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 30 8% 90%; /* stone-200 for light mode body background */
+    --foreground: 30 5% 15%; /* stone-800 for light mode text */
+
+    --card: 0 0% 100%; /* white for light mode card background */
+    --card-foreground: 30 5% 15%; /* stone-800 for light mode card text */
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 5% 15%;
+
+    --primary: 158 80% 42%; /* emerald-500 */
+    --primary-foreground: 30 17% 97%; /* light text for on primary */
+
+    --secondary: 30 8% 90%; /* stone-200 (can be different from body bg if needed) */
+    --secondary-foreground: 158 80% 32%; /* darker emerald for text on secondary */
+
+    --accent: 38 92% 50%; /* amber-500 */
+    --accent-foreground: 30 5% 15%; /* dark text for on accent */
+    
+    --muted: 30 7% 80%; /* stone-300 for muted backgrounds */
+    --muted-foreground: 30 5% 40%; /* stone-600 for muted text */
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 30 6% 75%; /* stone-400 */
+    --input: 30 6% 70%; /* stone-400 slightly darker for input borders */
+    --ring: 158 80% 42%; /* emerald-500 for focus rings */
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 30 5% 15%; /* stone-800 for dark mode body background */
+    --foreground: 30 17% 97%; /* stone-50 for dark mode text */
+
+    --card: 30 5% 10%; /* stone-900 for dark mode card background */
+    --card-foreground: 30 17% 97%; /* stone-50 for dark mode card text */
+
+    --popover: 30 5% 10%;
+    --popover-foreground: 30 17% 97%;
+
+    --primary: 158 80% 42%; /* emerald-500 */
+    --primary-foreground: 30 17% 97%;
+
+    --secondary: 30 5% 20%; /* stone-700 for dark mode secondary elements */
+    --secondary-foreground: 30 17% 97%;
+
+    --accent: 38 92% 50%; /* amber-500 */
+    --accent-foreground: 30 5% 15%; 
+    
+    --muted: 30 5% 25%; /* stone-700 slightly lighter for muted backgrounds */
+    --muted-foreground: 30 7% 65%; /* stone-400 for muted text */
+
+    --destructive: 0 63% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 30 5% 25%; /* stone-700 */
+    --input: 30 5% 30%; /* stone-700 slightly darker for input borders */
+    --ring: 158 80% 42%; /* emerald-500 */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1; /* Enable common ligatures */
+  }
+}

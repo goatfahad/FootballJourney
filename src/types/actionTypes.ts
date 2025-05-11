@@ -1,4 +1,4 @@
-import { GameState, GameSettings, Player, Team, Match, NewsItem, LiveMatchState } from './gameTypes'; // Added LiveMatchState
+import { GameState, GameSettings, Player, Team, Match, NewsItem, LiveMatchState, PlayerRole, PlayerDuty } from './gameTypes'; // Added LiveMatchState, PlayerRole, PlayerDuty
 
 export enum ActionTypes {
   INITIALIZE_NEW_GAME = 'INITIALIZE_NEW_GAME',
@@ -17,6 +17,7 @@ export enum ActionTypes {
   END_LIVE_MATCH = 'END_LIVE_MATCH',
   // PAUSE_LIVE_MATCH = 'PAUSE_LIVE_MATCH', // Could add later
   // RESUME_LIVE_MATCH = 'RESUME_LIVE_MATCH', // Could add later
+  UPDATE_PLAYER_TACTICAL_ASSIGNMENT = 'UPDATE_PLAYER_TACTICAL_ASSIGNMENT',
 }
 
 // Define action interfaces
@@ -99,6 +100,15 @@ interface EndLiveMatchAction {
    // No payload needed, just clears the liveMatch state
 }
 
+interface UpdatePlayerTacticalAssignmentAction {
+  type: ActionTypes.UPDATE_PLAYER_TACTICAL_ASSIGNMENT;
+  payload: {
+    playerId: string;
+    role?: PlayerRole;
+    duty?: PlayerDuty;
+  };
+}
+
 
 export type GameActions =
   | InitializeNewGameAction
@@ -113,4 +123,5 @@ export type GameActions =
   | UpdateMatchAction
   | StartLiveMatchAction
   | UpdateLiveMatchAction
-  | EndLiveMatchAction;
+  | EndLiveMatchAction
+  | UpdatePlayerTacticalAssignmentAction;
