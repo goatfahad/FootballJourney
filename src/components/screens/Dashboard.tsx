@@ -6,7 +6,7 @@ import { LeaguePosition } from '../widgets/LeaguePosition';
 import { NextMatch } from '../widgets/NextMatch';
 import { FinanceOverview } from '../widgets/FinanceOverview';
 import { NewsFeed } from '../widgets/NewsFeed';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Match, NewsItem } from '../../types/gameTypes';
 
 export const Dashboard: React.FC = () => {
@@ -74,7 +74,7 @@ export const Dashboard: React.FC = () => {
       <Card title="Latest News">
         <NewsFeed newsItems={latestNews} />
         <div className="mt-3">
-          <Link to="/game/inbox">
+          <Link href="/game/inbox">
             <Button variant="primary" size="sm">View All News</Button>
           </Link>
         </div>
